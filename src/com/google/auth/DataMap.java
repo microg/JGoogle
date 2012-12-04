@@ -11,7 +11,7 @@ public class DataMap extends EnumMap<DataField, String> implements Constants {
 	private static final long serialVersionUID = 7378197191935938976L;
 
 	public static DataMap fromUrlDataString(final String string) {
-		final String[] parts = string.split("&");
+		final String[] parts = string.split("\n");
 		final DataMap dataMap = new DataMap();
 		for (final String part : parts) {
 			final int split = part.indexOf("=");
