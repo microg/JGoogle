@@ -58,7 +58,7 @@ public class ClientLogin implements Constants {
 			final StringBuffer response = new StringBuffer();
 			while ((line = rd.readLine()) != null) {
 				response.append(line);
-				response.append("&");
+				response.append("\n");
 			}
 			rd.close();
 			return response.substring(0, response.length() - 1);

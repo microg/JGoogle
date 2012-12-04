@@ -20,8 +20,8 @@ public enum DataField {
 			"sdk_version"), SECURITY_TOKEN("secTok"), SERVICE("service"), SERVICE_GPLUS(
 			"googleme"), SERVICE_HOSTED("HOSTED"), SERVICES("services"), SID(
 			"SID"), SOURCE("source"), STATUS("Error"), STORED_PERMISSION(
-			"has_permission"), TIME_STAMP("timeStmp"), UBERAUTH("uberauth"), URL(
-			"Url"), YOUTUBE_USER("YouTubeUser");
+			"has_permission"), TIME_STAMP("timeStmp"), URL("Url"), YOUTUBE_USER(
+			"YouTubeUser");
 
 	private static HashMap<String, DataField> internalMap;
 
