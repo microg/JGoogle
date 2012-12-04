@@ -20,3 +20,7 @@ local.properties
 .classpath
 .project
 .settings/
+
+# Android project files
+proguard-project.txt
+project.properties

@@ -50,6 +50,9 @@ public class AndroidClient implements Constants {
 
 	public static String getMasterToken(final AndroidDataSet dataSet,
 			final String password, final boolean encrypted) {
+		if (password == null || password.isEmpty() || dataSet == null) {
+			return null;
+		}
 		final Request request = createRequest(dataSet);
 		if (!encrypted) {
 			request.putData(DataField.PASSWORD, password);
