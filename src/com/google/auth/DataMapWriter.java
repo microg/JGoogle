@@ -1,6 +1,6 @@
 package com.google.auth;
 
-public abstract class DataMapWriter extends DataMapReader {
+public class DataMapWriter extends DataMapReader {
 
 	public DataMapWriter() {
 		super(new DataMap());

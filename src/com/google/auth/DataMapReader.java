@@ -2,7 +2,7 @@ package com.google.auth;
 
 import java.util.Set;
 
-public abstract class DataMapReader implements Constants {
+public class DataMapReader implements Constants {
 
 	protected DataMap dataMap;
 

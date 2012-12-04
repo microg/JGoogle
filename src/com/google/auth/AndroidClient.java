@@ -25,6 +25,27 @@ public class AndroidClient implements Constants {
 		return response.getData(DataField.AUTH_TOKEN);
 	}
 
+	public static DataMapReader getWebLoginToken(final AndroidDataSet dataSet,
+			final String masterToken, final String service,
+			final String packageName, final String packageSignature,
+			final boolean storedPermission) {
+		final Request request = createRequest(dataSet);
+		request.putData(DataField.MASTER_TOKEN, masterToken);
+		request.putData(DataField.SERVICE, service);
+		request.putData(DataField.PACKAGE_NAME, packageName);
+		request.putData(DataField.PACKAGE_SIGNATURE, packageSignature);
+		request.putData(DataField.STORED_PERMISSION, !storedPermission ? "1"
+				: "0");
+		final Response response = ClientLogin.sendRequest(request);
+		if (DEBUG) {
+			System.out.println(response.toString());
+		}
+		DataMap map = new DataMap();
+		map.put(DataField.AUTH_TOKEN, response.getData(DataField.AUTH_TOKEN));
+		map.put(DataField.UBERAUTH, response.getData(DataField.UBERAUTH));
+		return new DataMapReader(map);
+	}
+
 	public static String getAuthToken(final AndroidDataSet dataSet,
 			final String masterToken, final String service,
 			final String packageName, final String packageSignature,

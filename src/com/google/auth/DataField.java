@@ -10,18 +10,18 @@ public enum DataField {
 			"logintoken"), CAPTCHA_TOKEN_RES("CaptchaToken"), CAPTCHA_URL(
 			"CaptchaUrl"), CLIENT_ID("client_id"), CREATED("created"), DETAIL(
 			"ErrorDetail"), DEVICE_COUNTRY("device_country"), EMAIL("Email"), ENCRYPTED_PASSWORD(
-			"EncryptedPasswd"), FIRST_NAME("firstName"), GENDER("gender"), GPLUS_CHECK(
-			"gplus_check"), ID("id"), INFO("Info"), JSON_STATUS("status"), LANGUAGE(
-			"lang"), LAST_NAME("lastName"), LSID("LSID"), MASTER_TOKEN("Token"), NEEDS_CREDIT_CARD(
-			"CC"), OAUTH2_EXTRA_PREFIX("oauth2_"), OPERATOR_COUNTRY(
+			"EncryptedPasswd"), EXPIRY("Expiry"), FIRST_NAME("firstName"), GENDER(
+			"gender"), GPLUS_CHECK("gplus_check"), ID("id"), INFO("Info"), JSON_STATUS(
+			"status"), LANGUAGE("lang"), LAST_NAME("lastName"), LSID("LSID"), MASTER_TOKEN(
+			"Token"), NEEDS_CREDIT_CARD("CC"), OAUTH2_EXTRA_PREFIX("oauth2_"), OPERATOR_COUNTRY(
 			"operatorCountry"), PACKAGE_NAME("app"), PACKAGE_SIGNATURE(
 			"client_sig"), PASSWORD("Passwd"), PERMISSION("Permission"), PERMISSION_ADVICE(
 			"issueAdvice"), PHOTO("photo"), PICASA_USER("PicasaUser"), SDK_VERSION(
 			"sdk_version"), SECURITY_TOKEN("secTok"), SERVICE("service"), SERVICE_GPLUS(
 			"googleme"), SERVICE_HOSTED("HOSTED"), SERVICES("services"), SID(
 			"SID"), SOURCE("source"), STATUS("Error"), STORED_PERMISSION(
-			"has_permission"), TIME_STAMP("timeStmp"), URL("Url"), YOUTUBE_USER(
-			"YouTubeUser");
+			"has_permission"), TIME_STAMP("timeStmp"), UBERAUTH("uberauth"), URL(
+			"Url"), YOUTUBE_USER("YouTubeUser");
 
 	private static HashMap<String, DataField> internalMap;
 

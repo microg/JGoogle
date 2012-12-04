@@ -7,8 +7,8 @@ import java.util.EnumMap;
 
 public class DataMap extends EnumMap<DataField, String> implements Constants {
 
-	private static final long serialVersionUID = 7378197191935938976L;
 	public static boolean DEBUG = false;
+	private static final long serialVersionUID = 7378197191935938976L;
 
 	public static DataMap fromUrlDataString(final String string) {
 		final String[] parts = string.split("&");
