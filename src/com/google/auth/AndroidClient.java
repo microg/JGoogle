@@ -25,10 +25,20 @@ public class AndroidClient implements Constants {
 		return response.getData(DataField.AUTH_TOKEN);
 	}
 
-	public static DataMapReader getAuthTokenResponse(final AndroidDataSet dataSet,
+	public static String getAuthToken(final AndroidDataSet dataSet,
 			final String masterToken, final String service,
 			final String packageName, final String packageSignature,
 			final boolean storedPermission) {
+		final DataMapReader response = getAuthTokenResponse(dataSet,
+				masterToken, service, packageName, packageSignature,
+				storedPermission);
+		return response.getData(DataField.AUTH_TOKEN);
+	}
+
+	public static DataMapReader getAuthTokenResponse(
+			final AndroidDataSet dataSet, final String masterToken,
+			final String service, final String packageName,
+			final String packageSignature, final boolean storedPermission) {
 		final Request request = createRequest(dataSet);
 		request.putData(DataField.MASTER_TOKEN, masterToken);
 		request.putData(DataField.SERVICE, service);
@@ -43,31 +53,19 @@ public class AndroidClient implements Constants {
 		return response;
 	}
 
-	public static String getAuthToken(final AndroidDataSet dataSet,
-			final String masterToken, final String service,
-			final String packageName, final String packageSignature,
-			final boolean storedPermission) {
-		final Request request = createRequest(dataSet);
-		request.putData(DataField.MASTER_TOKEN, masterToken);
-		request.putData(DataField.SERVICE, service);
-		request.putData(DataField.PACKAGE_NAME, packageName);
-		request.putData(DataField.PACKAGE_SIGNATURE, packageSignature);
-		request.putData(DataField.STORED_PERMISSION, !storedPermission ? "1"
-				: "0");
-		final Response response = ClientLogin.sendRequest(request);
-		if (DEBUG) {
-			System.out.println(response.toString());
-		}
-		return response.getData(DataField.AUTH_TOKEN);
-	}
-
-	public static String getMasterToken(final AndroidDataSet dataSet,
-			final String password) {
-		return getMasterToken(dataSet, password, false);
-	}
-
 	public static String getMasterToken(final AndroidDataSet dataSet,
 			final String password, final boolean encrypted) {
+		if (password == null || password.isEmpty() || dataSet == null) {
+			return null;
+		}
+		final DataMapReader response = getMasterTokenResponse(dataSet,
+				password, encrypted);
+		return response.getData(DataField.MASTER_TOKEN);
+	}
+
+	public static DataMapReader getMasterTokenResponse(
+			final AndroidDataSet dataSet, final String password,
+			final boolean encrypted) {
 		if (password == null || password.isEmpty() || dataSet == null) {
 			return null;
 		}
@@ -81,6 +79,6 @@ public class AndroidClient implements Constants {
 		if (DEBUG) {
 			System.out.println(response.toString());
 		}
-		return response.getData(DataField.MASTER_TOKEN);
+		return response;
 	}
 }
