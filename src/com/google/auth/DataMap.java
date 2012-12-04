@@ -64,6 +64,9 @@ public class DataMap extends EnumMap<DataField, String> implements Constants {
 				}
 			}
 		}
+		if (builder.length() == 0) {
+			return null;
+		}
 		return builder.substring(0, builder.length() - 1);
 	}
 
