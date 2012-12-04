@@ -25,7 +25,7 @@ public class AndroidClient implements Constants {
 		return response.getData(DataField.AUTH_TOKEN);
 	}
 
-	public static DataMapReader getWebLoginToken(final AndroidDataSet dataSet,
+	public static DataMapReader getAuthTokenResponse(final AndroidDataSet dataSet,
 			final String masterToken, final String service,
 			final String packageName, final String packageSignature,
 			final boolean storedPermission) {
@@ -40,10 +40,7 @@ public class AndroidClient implements Constants {
 		if (DEBUG) {
 			System.out.println(response.toString());
 		}
-		DataMap map = new DataMap();
-		map.put(DataField.AUTH_TOKEN, response.getData(DataField.AUTH_TOKEN));
-		map.put(DataField.UBERAUTH, response.getData(DataField.UBERAUTH));
-		return new DataMapReader(map);
+		return response;
 	}
 
 	public static String getAuthToken(final AndroidDataSet dataSet,
