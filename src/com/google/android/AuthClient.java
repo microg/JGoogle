@@ -7,12 +7,12 @@ import com.google.auth.Request;
 import com.google.auth.Response;
 
 public class AuthClient {
-	public static boolean DEBUG = false;
-
 	private final static String ACCOUNT_TYPE_HOSTED_OR_GOOGLE = "HOSTED_OR_GOOGLE";
-	private final static String SOURCE_ANDROID = "android";
-	private final static String SERVICE_DEFAULT_AC2DM = "ac2dm";
+
+	public static boolean DEBUG = false;
 	private static final String REQUEST_URL_ANDROID_CLIENT_AUTH = "https://android.clients.google.com/auth";
+	private final static String SERVICE_DEFAULT_AC2DM = "ac2dm";
+	private final static String SOURCE_ANDROID = "android";
 
 	private static Request createBaseRequest(final AndroidInfo info) {
 		final Request request = new Request();
