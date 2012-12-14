@@ -1,12 +1,13 @@
 package com.google.tools;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class Client {
 	public static boolean DEBUG = false;
@@ -58,17 +59,7 @@ public class Client {
 					is = new GZIPInputStream(is);
 				}
 			}
-			final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			final byte[] buff = new byte[1024];
-			while (true) {
-				final int nb = is.read(buff);
-				if (nb < 0) {
-					break;
-				}
-				bos.write(buff, 0, nb);
-			}
-			is.close();
-			return bos.toByteArray();
+			return readStreamToEnd(is);
 		} catch (final IOException e) {
 			if (DEBUG) {
 				System.err.println("Could not read data!");
@@ -77,14 +68,34 @@ public class Client {
 		}
 	}
 
+	protected static byte[] readStreamToEnd(InputStream is) throws IOException {
+		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		final byte[] buff = new byte[1024];
+		while (true) {
+			final int nb = is.read(buff);
+			if (nb < 0) {
+				break;
+			}
+			bos.write(buff, 0, nb);
+		}
+		is.close();
+		return bos.toByteArray();
+	}
+
 	protected static void writeData(final HttpURLConnection connection,
-			final String string) {
+			final String string, boolean gzip) {
 		try {
-			final DataOutputStream stream = new DataOutputStream(
-					connection.getOutputStream());
-			stream.writeBytes(string);
-			stream.flush();
-			stream.close();
+			OutputStream os = connection.getOutputStream();
+			if (gzip) {
+				os = new GZIPOutputStream(os);
+			}
+			/*
+			 * final DataOutputStream stream = new DataOutputStream(os);
+			 * stream.writeBytes(string);
+			 */
+			os.write(string.getBytes());
+			os.flush();
+			os.close();
 		} catch (final IOException e) {
 			if (DEBUG) {
 				System.err.println("Could not send data!");

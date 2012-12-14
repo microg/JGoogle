@@ -10,8 +10,6 @@ import com.google.tools.Client;
 
 public class MarketClient extends Client {
 
-	public static boolean DEBUG = false;
-
 	private final static int PROTOCOL_VERSION = 2;
 	private final static String REQUEST_COOKIE_FIELD = "Cookie";
 
@@ -59,7 +57,7 @@ public class MarketClient extends Client {
 	private static byte[] sendString(final HttpURLConnection connection,
 			final String string, final RequestInfo info) {
 		prepareConnection(connection, info);
-		writeData(connection, string);
+		writeData(connection, string, false);
 		return readData(connection, isError(connection), true);
 	}
 

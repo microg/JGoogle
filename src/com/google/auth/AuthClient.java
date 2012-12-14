@@ -7,7 +7,6 @@ import java.net.URL;
 import com.google.tools.Client;
 
 public class AuthClient extends Client {
-	public static boolean DEBUG = false;
 
 	private static DataMap sendData(final URL url, final DataMapReader data) {
 		return DataMap.fromUrlDataString(sendString(url, data.toString()));
@@ -21,7 +20,7 @@ public class AuthClient extends Client {
 	private static String sendString(final HttpURLConnection connection,
 			final String dataString) {
 		prepareConnection(connection);
-		writeData(connection, dataString);
+		writeData(connection, dataString, false);
 		return new String(readData(connection, isError(connection), false));
 	}
 
