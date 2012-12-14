@@ -3,6 +3,10 @@ JGAPI
 
 An inofficial Google API Client library, with focus on Android. Part of μg Project.
 
+###Used Libs
+
+This project makes use of Google's Protobuf Library. See src/com/google/protobuf/COPYING.txt for their license
+
 ###License
 > Copyright 2012 μg Project Team
 
