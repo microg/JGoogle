@@ -16,6 +16,9 @@ USE_SUPPORT=false
 EXTRA_INCLUDES=""
 EXTRA_USES=""
 
+# Additional compile directory [api only]
+EXTRA_COMPILE="lib/protobuf"
+
 # Script file to be called after default script
 EXTRA_BUILD_SCRIPT=""
 
