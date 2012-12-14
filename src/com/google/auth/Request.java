@@ -2,7 +2,9 @@ package com.google.auth;
 
 import java.net.URL;
 
-public class Request extends DataMapWriter implements Constants {
+public class Request extends DataMapWriter {
+
+	private static final String REQUEST_URL_DEFAULT_GOOGLE_AUTH = "https://www.google.com/accounts/ClientLogin";
 
 	private URL requestUrl;
 
@@ -22,7 +24,7 @@ public class Request extends DataMapWriter implements Constants {
 	@Override
 	public void recycle() {
 		super.recycle();
-		setRequestUrl(REQUEST_URL_GOOGLE_CLIENT_LOGIN);
+		setRequestUrl(REQUEST_URL_DEFAULT_GOOGLE_AUTH);
 	}
 
 	public Response send() {

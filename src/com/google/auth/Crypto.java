@@ -8,7 +8,13 @@ import java.security.spec.RSAPublicKeySpec;
 
 import javax.crypto.Cipher;
 
-public class Crypto implements Constants {
+public class Crypto {
+	private static final String CRYPT_CIPHER = "RSA/ECB/OAEPWITHSHA1ANDMGF1PADDING";
+	private static final String CRYPT_DIVIDER = "\uFFFD\uFFFD";
+	private static final String CRYPT_HASH_TYPE = "SHA-1";
+	private static final String CRYPT_PUBLIC_KEY = "AAAAgMom/1a/v0lblO2Ubrt60J2gcuXSljGFQXgcyZWveWLEwo6prwgi3iJIZdodyhKZQrNWp5nKJ3srRXcUW+F1BD3baEVGcmEgqaLZUNBjm057pKRI16kB0YppeGx5qIQ5QjKzsR8ETQbKLNWgRY0QRNVz34kMJR3P/LgHax/6rmf5AAAAAwEAAQ==";
+	private static final String CRYPT_TYPE = "RSA";
+	private static final String CHARENC_UTF8 = "UTF-8";
 
 	private static PublicKey createKey(final String keyStr,
 			final byte ciphertextHeader[]) {

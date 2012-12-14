@@ -3,7 +3,8 @@ package com.google.auth;
 public class DataMapWriter extends DataMapReader {
 
 	public DataMapWriter() {
-		super(new DataMap());
+		this(new DataMap());
+		recycle();
 	}
 
 	public DataMapWriter(final DataMap dataMap) {

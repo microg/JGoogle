@@ -9,8 +9,12 @@ import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
 
-public class ClientLogin implements Constants {
+public class ClientLogin {
 	public static boolean DEBUG = false;
+
+	private static final String REQUEST_METHOD = "POST";
+	private static final String REQUEST_CONTENT_TYPE = "application/x-www-form-urlencoded";
+	private static final String REQUEST_CONTENT_TYPE_FIELD = "Content-Type";
 
 	private static boolean isError(final HttpURLConnection connection) {
 		try {

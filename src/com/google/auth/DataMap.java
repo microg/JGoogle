@@ -5,10 +5,11 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.EnumMap;
 
-public class DataMap extends EnumMap<DataField, String> implements Constants {
+public class DataMap extends EnumMap<DataField, String> {
 
 	public static boolean DEBUG = false;
 	private static final long serialVersionUID = 7378197191935938976L;
+	private static final String CHARENC_UTF8 = "UTF-8";
 
 	public static DataMap fromUrlDataString(final String string) {
 		final String[] parts = string.split("\n");
