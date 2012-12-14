@@ -92,14 +92,6 @@ public abstract class AbstractMessageLite implements MessageLite {
   }
 
   /**
-   * Package private helper method for AbstractParser to create
-   * UninitializedMessageException.
-   */
-  UninitializedMessageException newUninitializedMessageException() {
-    return new UninitializedMessageException(this);
-  }
-
-  /**
    * A partial implementation of the {@link Message.Builder} interface which
    * implements as many methods of that interface as possible in terms of
    * other methods.
@@ -315,12 +307,10 @@ public abstract class AbstractMessageLite implements MessageLite {
      */
     protected static <T> void addAll(final Iterable<T> values,
                                      final Collection<? super T> list) {
-      if (values instanceof LazyStringList) {
-        // For StringOrByteStringLists, check the underlying elements to avoid
-        // forcing conversions of ByteStrings to Strings.
-        checkForNullValues(((LazyStringList) values).getUnderlyingElements());
-      } else {
-        checkForNullValues(values);
+      for (final T value : values) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
       }
       if (values instanceof Collection) {
         final Collection<T> collection = (Collection<T>) values;
@@ -328,14 +318,6 @@ public abstract class AbstractMessageLite implements MessageLite {
       } else {
         for (final T value : values) {
           list.add(value);
-        }
-      }
-    }
-
-    private static void checkForNullValues(final Iterable<?> values) {
-      for (final Object value : values) {
-        if (value == null) {
-          throw new NullPointerException();
         }
       }
     }

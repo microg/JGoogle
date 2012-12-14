@@ -3,8 +3,8 @@ package com.google.market;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-import com.google.play.proto.PlayStore.Request;
-import com.google.play.proto.PlayStore.Response;
+import com.google.market.proto.Market.Request;
+import com.google.market.proto.Market.Response;
 import com.google.tools.Base64;
 import com.google.tools.Client;
 

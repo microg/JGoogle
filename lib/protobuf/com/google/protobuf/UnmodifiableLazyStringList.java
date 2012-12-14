@@ -32,7 +32,6 @@ package com.google.protobuf;
 
 import java.util.AbstractList;
 import java.util.RandomAccess;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.Iterator;
 
@@ -143,10 +142,5 @@ public class UnmodifiableLazyStringList extends AbstractList<String>
         throw new UnsupportedOperationException();
       }
     };
-  }
-
-  public List<?> getUnderlyingElements() {
-    // The returned value is already unmodifiable.
-    return list.getUnderlyingElements();
   }
 }

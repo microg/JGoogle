@@ -55,18 +55,15 @@ import java.util.regex.Pattern;
 public final class TextFormat {
   private TextFormat() {}
 
-  private static final Printer DEFAULT_PRINTER = new Printer();
-  private static final Printer SINGLE_LINE_PRINTER =
-      (new Printer()).setSingleLineMode(true);
-  private static final Printer UNICODE_PRINTER =
-      (new Printer()).setEscapeNonAscii(false);
+  private static final Printer DEFAULT_PRINTER = new Printer(false);
+  private static final Printer SINGLE_LINE_PRINTER = new Printer(true);
 
   /**
    * Outputs a textual representation of the Protocol Message supplied into
    * the parameter output. (This representation is the new version of the
    * classic "ProtocolPrinter" output from the original Protocol Buffer system)
    */
-  public static void print(final MessageOrBuilder message, final Appendable output)
+  public static void print(final Message message, final Appendable output)
                            throws IOException {
     DEFAULT_PRINTER.print(message, new TextGenerator(output));
   }
@@ -82,7 +79,7 @@ public final class TextFormat {
    * Generates a human readable form of this message, useful for debugging and
    * other purposes, with no newline characters.
    */
-  public static String shortDebugString(final MessageOrBuilder message) {
+  public static String shortDebugString(final Message message) {
     try {
       final StringBuilder sb = new StringBuilder();
       SINGLE_LINE_PRINTER.print(message, new TextGenerator(sb));
@@ -112,7 +109,7 @@ public final class TextFormat {
    * Like {@code print()}, but writes directly to a {@code String} and
    * returns it.
    */
-  public static String printToString(final MessageOrBuilder message) {
+  public static String printToString(final Message message) {
     try {
       final StringBuilder text = new StringBuilder();
       print(message, text);
@@ -130,34 +127,6 @@ public final class TextFormat {
     try {
       final StringBuilder text = new StringBuilder();
       print(fields, text);
-      return text.toString();
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  /**
-   * Same as {@code printToString()}, except that non-ASCII characters
-   * in string type fields are not escaped in backslash+octals.
-   */
-  public static String printToUnicodeString(final MessageOrBuilder message) {
-    try {
-      final StringBuilder text = new StringBuilder();
-      UNICODE_PRINTER.print(message, new TextGenerator(text));
-      return text.toString();
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  /**
-   * Same as {@code printToString()}, except that non-ASCII characters
-   * in string type fields are not escaped in backslash+octals.
-   */
-  public static String printToUnicodeString(final UnknownFieldSet fields) {
-    try {
-      final StringBuilder text = new StringBuilder();
-      UNICODE_PRINTER.printUnknownFields(fields, new TextGenerator(text));
       return text.toString();
     } catch (IOException e) {
       throw new IllegalStateException(e);
@@ -247,26 +216,13 @@ public final class TextFormat {
   /** Helper class for converting protobufs to text. */
   private static final class Printer {
     /** Whether to omit newlines from the output. */
-    boolean singleLineMode = false;
+    final boolean singleLineMode;
 
-    /** Whether to escape non ASCII characters with backslash and octal. */
-    boolean escapeNonAscii = true;
-
-    private Printer() {}
-
-    /** Setter of singleLineMode */
-    private Printer setSingleLineMode(boolean singleLineMode) {
+    private Printer(final boolean singleLineMode) {
       this.singleLineMode = singleLineMode;
-      return this;
     }
 
-    /** Setter of escapeNonAscii */
-    private Printer setEscapeNonAscii(boolean escapeNonAscii) {
-      this.escapeNonAscii = escapeNonAscii;
-      return this;
-    }
-
-    private void print(final MessageOrBuilder message, final TextGenerator generator)
+    private void print(final Message message, final TextGenerator generator)
         throws IOException {
       for (Map.Entry<FieldDescriptor, Object> field
           : message.getAllFields().entrySet()) {
@@ -383,9 +339,7 @@ public final class TextFormat {
 
         case STRING:
           generator.print("\"");
-          generator.print(escapeNonAscii ?
-              escapeText((String) value) :
-              (String) value);
+          generator.print(escapeText((String) value));
           generator.print("\"");
           break;
 
@@ -587,7 +541,7 @@ public final class TextFormat {
     private int previousLine = 0;
     private int previousColumn = 0;
 
-    // We use possessive quantifiers (*+ and ++) because otherwise the Java
+    // We use possesive quantifiers (*+ and ++) because otherwise the Java
     // regex matcher has stack overflows on large inputs.
     private static final Pattern WHITESPACE =
       Pattern.compile("(\\s|(#.*$))++", Pattern.MULTILINE);
@@ -910,7 +864,7 @@ public final class TextFormat {
     public ParseException parseException(final String description) {
       // Note:  People generally prefer one-based line and column numbers.
       return new ParseException(
-        line + 1, column + 1, description);
+        (line + 1) + ":" + (column + 1) + ": " + description);
     }
 
     /**
@@ -921,7 +875,7 @@ public final class TextFormat {
         final String description) {
       // Note:  People generally prefer one-based line and column numbers.
       return new ParseException(
-        previousLine + 1, previousColumn + 1, description);
+        (previousLine + 1) + ":" + (previousColumn + 1) + ": " + description);
     }
 
     /**
@@ -946,45 +900,8 @@ public final class TextFormat {
   public static class ParseException extends IOException {
     private static final long serialVersionUID = 3196188060225107702L;
 
-    private final int line;
-    private final int column;
-
-    /** Create a new instance, with -1 as the line and column numbers. */
     public ParseException(final String message) {
-      this(-1, -1, message);
-    }
-
-    /**
-     * Create a new instance
-     *
-     * @param line the line number where the parse error occurred,
-     * using 1-offset.
-     * @param column the column number where the parser error occurred,
-     * using 1-offset.
-     */
-    public ParseException(final int line, final int column,
-        final String message) {
-      super(Integer.toString(line) + ":" + column + ": " + message);
-      this.line = line;
-      this.column = column;
-    }
-
-    /**
-     * Return the line where the parse exception occurred, or -1 when
-     * none is provided. The value is specified as 1-offset, so the first
-     * line is line 1.
-     */
-    public int getLine() {
-      return line;
-    }
-
-    /**
-     * Return the column where the parse exception occurred, or -1 when
-     * none is provided. The value is specified as 1-offset, so the first
-     * line is line 1.
-     */
-    public int getColumn() {
-      return column;
+      super(message);
     }
   }
 
@@ -1156,7 +1073,7 @@ public final class TextFormat {
         mergeField(tokenizer, extensionRegistry, subBuilder);
       }
 
-      value = subBuilder.buildPartial();
+      value = subBuilder.build();
 
     } else {
       tokenizer.consume(":");
@@ -1295,7 +1212,7 @@ public final class TextFormat {
    */
   static ByteString unescapeBytes(final CharSequence charString)
       throws InvalidEscapeSequenceException {
-    // First convert the Java character sequence to UTF-8 bytes.
+    // First convert the Java characater sequence to UTF-8 bytes.
     ByteString input = ByteString.copyFromUtf8(charString.toString());
     // Then unescape certain byte sequences introduced by ASCII '\\'.  The valid
     // escapes can all be expressed with ASCII characters, so it is safe to
@@ -1432,7 +1349,7 @@ public final class TextFormat {
   /**
    * Parse a 32-bit signed integer from the text.  Unlike the Java standard
    * {@code Integer.parseInt()}, this function recognizes the prefixes "0x"
-   * and "0" to signify hexadecimal and octal numbers, respectively.
+   * and "0" to signify hexidecimal and octal numbers, respectively.
    */
   static int parseInt32(final String text) throws NumberFormatException {
     return (int) parseInteger(text, true, false);
@@ -1441,7 +1358,7 @@ public final class TextFormat {
   /**
    * Parse a 32-bit unsigned integer from the text.  Unlike the Java standard
    * {@code Integer.parseInt()}, this function recognizes the prefixes "0x"
-   * and "0" to signify hexadecimal and octal numbers, respectively.  The
+   * and "0" to signify hexidecimal and octal numbers, respectively.  The
    * result is coerced to a (signed) {@code int} when returned since Java has
    * no unsigned integer type.
    */
@@ -1452,7 +1369,7 @@ public final class TextFormat {
   /**
    * Parse a 64-bit signed integer from the text.  Unlike the Java standard
    * {@code Integer.parseInt()}, this function recognizes the prefixes "0x"
-   * and "0" to signify hexadecimal and octal numbers, respectively.
+   * and "0" to signify hexidecimal and octal numbers, respectively.
    */
   static long parseInt64(final String text) throws NumberFormatException {
     return parseInteger(text, true, true);
@@ -1461,7 +1378,7 @@ public final class TextFormat {
   /**
    * Parse a 64-bit unsigned integer from the text.  Unlike the Java standard
    * {@code Integer.parseInt()}, this function recognizes the prefixes "0x"
-   * and "0" to signify hexadecimal and octal numbers, respectively.  The
+   * and "0" to signify hexidecimal and octal numbers, respectively.  The
    * result is coerced to a (signed) {@code long} when returned since Java has
    * no unsigned long type.
    */
