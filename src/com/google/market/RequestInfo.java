@@ -1,34 +1,36 @@
-package com.google.auth;
+package com.google.market;
 
 import java.net.URL;
 
-public class Request extends DataMapWriter {
+public class RequestInfo {
 
-	private static final String REQUEST_URL_DEFAULT_GOOGLE_AUTH = "https://www.google.com/accounts/ClientLogin";
+	private final String authToken;
 
 	private URL requestUrl;
 
-	public Request() {
-		super();
+	private final String service;
+
+	public RequestInfo(final String authToken, final String requestUrl,
+			final String service) {
+		this.authToken = authToken;
+		this.service = service;
+		setRequestUrl(requestUrl);
 	}
 
-	public Request(final URL requestUrl, final DataMap dataMap) {
-		super(dataMap);
-		setRequestUrl(requestUrl);
+	public String getAuthToken() {
+		return authToken;
+	}
+
+	public String getCookie() {
+		return service + "=" + authToken;
 	}
 
 	public URL getRequestUrl() {
 		return requestUrl;
 	}
 
-	@Override
-	public void recycle() {
-		super.recycle();
-		setRequestUrl(REQUEST_URL_DEFAULT_GOOGLE_AUTH);
-	}
-
-	public Response send() {
-		return AuthClient.sendRequest(this);
+	public String getService() {
+		return service;
 	}
 
 	public void setRequestUrl(final String requestUrl) {
@@ -48,4 +50,5 @@ public class Request extends DataMapWriter {
 		}
 		this.requestUrl = requestUrl;
 	}
+
 }

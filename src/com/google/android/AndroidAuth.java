@@ -1,12 +1,12 @@
 package com.google.android;
 
-import com.google.auth.ClientLogin;
+import com.google.auth.AuthClient;
 import com.google.auth.DataField;
 import com.google.auth.DataMapReader;
 import com.google.auth.Request;
 import com.google.auth.Response;
 
-public class AuthClient {
+public class AndroidAuth {
 	private final static String ACCOUNT_TYPE_HOSTED_OR_GOOGLE = "HOSTED_OR_GOOGLE";
 
 	public static boolean DEBUG = false;
@@ -34,7 +34,7 @@ public class AuthClient {
 		final Request request = createBaseRequest(dataSet);
 		request.putData(DataField.MASTER_TOKEN, masterToken);
 		request.putData(DataField.SERVICE, service);
-		final Response response = ClientLogin.sendRequest(request);
+		final Response response = AuthClient.sendRequest(request);
 		if (DEBUG) {
 			System.out.println(response.toString());
 		}
@@ -61,7 +61,7 @@ public class AuthClient {
 		request.putData(DataField.PACKAGE_SIGNATURE, packageSignature);
 		request.putData(DataField.STORED_PERMISSION, !storedPermission ? "1"
 				: "0");
-		final Response response = ClientLogin.sendRequest(request);
+		final Response response = AuthClient.sendRequest(request);
 		if (DEBUG) {
 			System.out.println(response.toString());
 		}
@@ -89,7 +89,7 @@ public class AuthClient {
 		} else {
 			request.putData(DataField.ENCRYPTED_PASSWORD, password);
 		}
-		final Response response = ClientLogin.sendRequest(request);
+		final Response response = AuthClient.sendRequest(request);
 		if (DEBUG) {
 			System.out.println(response.toString());
 		}
