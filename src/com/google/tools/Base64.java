@@ -1,4 +1,4 @@
-package com.google.auth;
+package com.google.tools;
 
 /**
  * <p>

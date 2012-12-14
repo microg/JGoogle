@@ -8,6 +8,8 @@ import java.security.spec.RSAPublicKeySpec;
 
 import javax.crypto.Cipher;
 
+import com.google.tools.Base64;
+
 public class Crypto {
 	private static final String CHARENC_UTF8 = "UTF-8";
 	private static final String CRYPT_CIPHER = "RSA/ECB/OAEPWITHSHA1ANDMGF1PADDING";
