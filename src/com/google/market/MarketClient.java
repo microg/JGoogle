@@ -5,7 +5,6 @@ import java.net.HttpURLConnection;
 
 import com.google.play.proto.PlayStore.Request;
 import com.google.play.proto.PlayStore.Response;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.tools.Base64;
 import com.google.tools.Client;
 
@@ -37,16 +36,22 @@ public class MarketClient extends Client {
 
 	public static Response sendRequest(final Request request,
 			final RequestInfo info) {
+		byte[] bytes = null;
 		try {
-			return Response.parseFrom(sendString(
+			bytes = sendString(
 					"version="
 							+ PROTOCOL_VERSION
 							+ "&request="
 							+ Base64.encodeBytes(request.toByteArray(),
-									Base64.URL_SAFE), info));
-		} catch (final InvalidProtocolBufferException e) {
-			return null;
-		} catch (final IOException e) {
+									Base64.URL_SAFE), info);
+			return Response.parseFrom(bytes);
+		} catch (final Exception e) {
+			if (DEBUG) {
+				e.printStackTrace(System.err);
+				if (bytes != null) {
+					System.err.println(new String(bytes));
+				}
+			}
 			return null;
 		}
 	}
@@ -55,7 +60,7 @@ public class MarketClient extends Client {
 			final String string, final RequestInfo info) {
 		prepareConnection(connection, info);
 		writeData(connection, string);
-		return readData(connection, isError(connection));
+		return readData(connection, isError(connection), true);
 	}
 
 	private static byte[] sendString(final String string, final RequestInfo info) {

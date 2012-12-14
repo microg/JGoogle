@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
+import java.util.zip.GZIPInputStream;
 
 public class Client {
 	public static boolean DEBUG = false;
@@ -46,13 +47,16 @@ public class Client {
 	}
 
 	protected static byte[] readData(final HttpURLConnection connection,
-			final boolean error) {
+			final boolean error, final boolean gunzip) {
 		try {
 			InputStream is = null;
 			if (error) {
 				is = connection.getErrorStream();
 			} else {
 				is = connection.getInputStream();
+				if (gunzip) {
+					is = new GZIPInputStream(is);
+				}
 			}
 			final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			final byte[] buff = new byte[1024];

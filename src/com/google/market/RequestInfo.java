@@ -17,10 +17,6 @@ public class RequestInfo {
 		setRequestUrl(requestUrl);
 	}
 
-	public String getAuthToken() {
-		return authToken;
-	}
-
 	public String getCookie() {
 		return service + "=" + authToken;
 	}

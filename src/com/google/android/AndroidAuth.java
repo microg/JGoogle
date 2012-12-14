@@ -29,9 +29,9 @@ public class AndroidAuth {
 		return request;
 	}
 
-	public static String getAuthToken(final AndroidInfo dataSet,
+	public static String getAuthToken(final AndroidInfo info,
 			final String masterToken, final String service) {
-		final Request request = createBaseRequest(dataSet);
+		final Request request = createBaseRequest(info);
 		request.putData(DataField.MASTER_TOKEN, masterToken);
 		request.putData(DataField.SERVICE, service);
 		final Response response = AuthClient.sendRequest(request);

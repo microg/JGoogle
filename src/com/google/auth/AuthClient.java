@@ -22,7 +22,7 @@ public class AuthClient extends Client {
 			final String dataString) {
 		prepareConnection(connection);
 		writeData(connection, dataString);
-		return new String(readData(connection, isError(connection)));
+		return new String(readData(connection, isError(connection), false));
 	}
 
 	private static String sendString(final URL url, final String dataString) {
