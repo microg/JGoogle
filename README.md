@@ -5,8 +5,9 @@ An inofficial Google API Client library, with focus on Android. Part of μg Proj
 
 ###Used Libs
 
-This project makes use of the following external Libraries:
-* Google's Protobuf Library. See lib/protobuf/COPYING.txt for their license.
+This project makes use of the following external projects:
+* [Google's Protobuf Library](http://code.google.com/p/protobuf/) - see lib/protobuf/COPYING.txt for their license.
+* [android-market-api](http://code.google.com/p/android-market-api/) - see [http://www.apache.org/licenses/LICENSE-2.0] for their license.
 
 ###License
 > Copyright 2012 μg Project Team
