@@ -8,26 +8,31 @@ import com.google.tools.Client;
 
 public class AuthClient extends Client {
 
-	private static DataMap sendData(final URL url, final DataMapReader data) {
-		return DataMap.fromUrlDataString(sendString(url, data.toString()));
+	private static DataMap sendData(final URL url, final DataMapReader data,
+			final String userAgent) {
+		return DataMap.fromUrlDataString(sendString(url, data.toString(),
+				userAgent));
 
 	}
 
 	public static Response sendRequest(final Request request) {
-		return new Response(sendData(request.getRequestUrl(), request));
+		return new Response(sendData(request.getRequestUrl(), request,
+				request.getUserAgent()));
 	}
 
 	private static String sendString(final HttpURLConnection connection,
 			final String dataString) {
-		prepareConnection(connection);
+		prepareConnection(connection, false);
 		writeData(connection, dataString, false);
 		return new String(readData(connection, isError(connection), false));
 	}
 
-	private static String sendString(final URL url, final String dataString) {
+	private static String sendString(final URL url, final String dataString,
+			final String userAgent) {
 		HttpURLConnection connection = null;
 		try {
 			connection = (HttpURLConnection) url.openConnection();
+			setUserAgent(connection, userAgent);
 			return sendString(connection, dataString);
 		} catch (final IOException e) {
 			if (DEBUG) {

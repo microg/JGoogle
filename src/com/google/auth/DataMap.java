@@ -5,10 +5,11 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.EnumMap;
 
+import com.google.tools.Client;
+
 public class DataMap extends EnumMap<DataField, String> {
 
 	private static final String CHARENC_UTF8 = "UTF-8";
-	public static boolean DEBUG = false;
 	private static final long serialVersionUID = 7378197191935938976L;
 
 	public static DataMap fromUrlDataString(final String string) {
@@ -24,13 +25,14 @@ public class DataMap extends EnumMap<DataField, String> {
 							part.substring(split + 1), CHARENC_UTF8);
 					dataMap.put(DataField.fromInternalName(key), value);
 				} catch (final Throwable t) {
-					if (DEBUG) {
-						System.err.println(part);
+					if (Client.DEBUG) {
+						System.err.println("Could not decode: " + part);
 					}
 				}
 			} else {
-				if (DEBUG) {
-					System.err.println(part);
+				if (Client.DEBUG) {
+					System.err.println("Not a key value pair: " + part);
+
 				}
 			}
 		}
@@ -66,7 +68,7 @@ public class DataMap extends EnumMap<DataField, String> {
 			}
 		}
 		if (builder.length() == 0) {
-			return null;
+			return "";
 		}
 		return builder.substring(0, builder.length() - 1);
 	}

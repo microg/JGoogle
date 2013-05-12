@@ -7,6 +7,7 @@ public class Request extends DataMapWriter {
 	private static final String REQUEST_URL_DEFAULT_GOOGLE_AUTH = "https://www.google.com/accounts/ClientLogin";
 
 	private URL requestUrl;
+	private String userAgent;
 
 	public Request() {
 		super();
@@ -21,6 +22,10 @@ public class Request extends DataMapWriter {
 		return requestUrl;
 	}
 
+	public String getUserAgent() {
+		return userAgent;
+	}
+
 	@Override
 	public void recycle() {
 		super.recycle();
@@ -29,6 +34,10 @@ public class Request extends DataMapWriter {
 
 	public Response send() {
 		return AuthClient.sendRequest(this);
+	}
+
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
 	}
 
 	public void setRequestUrl(final String requestUrl) {
