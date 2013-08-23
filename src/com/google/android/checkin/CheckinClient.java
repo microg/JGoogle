@@ -1,25 +1,21 @@
-package com.google.android;
+package com.google.android.checkin;
 
-import com.google.checkin.CheckinClient;
-import com.google.checkin.proto.CheckIn;
+import com.google.android.AndroidContext;
+import com.google.tools.Client;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
 
-import java.util.*;
+import java.io.InputStream;
+import java.util.Date;
 
-public class AndroidCheckin {
+public class CheckinClient extends Client {
 
+	protected static final String REQUEST_CONTENT_TYPE = "application/x-protobuffer";
+	protected static final String REQUEST_CONTENT_TYPE_FIELD = "Content-Type";
 	private static final String checkInUrl = "https://android.clients.google.com/checkin";
 	private static final int version = 3;
-
-	private AndroidCheckin() {
-	}
-
-	private static Map<String, String> parseSettings(List<CheckIn.CheckinResponse.GservicesSetting> settings) {
-		Map<String, String> map = new HashMap<String, String>();
-		for (CheckIn.CheckinResponse.GservicesSetting setting : settings) {
-			map.put(setting.getName().toStringUtf8(), setting.getValue().toStringUtf8());
-		}
-		return Collections.unmodifiableMap(map);
-	}
 
 	private static int inRangeOr(int val, int min, int max, int def) {
 		return (val >= min && val <= max) ? val : def;
@@ -41,11 +37,36 @@ public class AndroidCheckin {
 		return (s != null && !s.isEmpty());
 	}
 
-	public static CheckinResponse checkin(final AndroidInfo info, final String authToken) {
+	public CheckInProto.CheckinResponse sendRequest(final CheckInProto.CheckinRequest request, final String url) {
+
+		byte[] bytes = null;
+		try {
+			final HttpPost post = new HttpPost(url);
+			post.setHeader(REQUEST_CONTENT_TYPE_FIELD, REQUEST_CONTENT_TYPE);
+			post.setEntity(new ByteArrayEntity(request.toByteArray()));
+			post.setHeader("User-Agent", "Android-Checkin/2.0 (mako JDQ39); gzip");
+			final DefaultHttpClient client = new DefaultHttpClient();
+			final HttpResponse response = client.execute(post);
+			final InputStream is = response.getEntity().getContent();
+			bytes = readStreamToEnd(is);
+			return CheckInProto.CheckinResponse.parseFrom(bytes);
+		} catch (final Exception e) {
+			if (DEBUG) {
+				e.printStackTrace(System.err);
+				if (bytes != null) {
+					System.err.println(new String(bytes));
+				}
+			}
+			return null;
+		}
+
+	}
+
+	public CheckinResponse checkin(final AndroidContext info, final String authToken) {
 		final long now = new Date().getTime();
 
 
-		final CheckIn.CheckinRequest.Checkin.Build build = new CheckIn.CheckinRequest.Checkin.Build();
+		final CheckInProto.CheckinRequest.Checkin.Build build = new CheckInProto.CheckinRequest.Checkin.Build();
 		if (notEmpty(info.getBuildFingerprint())) {
 			build.setFingerprint(info.getBuildFingerprint());
 		}
@@ -79,17 +100,16 @@ public class AndroidCheckin {
 		build.setClientId(info.getBuildClientId());
 		build.setOtaInstalled(info.getBuildOtaInstalled());
 
-		final CheckIn.CheckinRequest.Checkin checkin = new CheckIn.CheckinRequest.Checkin();
+		final CheckInProto.CheckinRequest.Checkin checkin = new CheckInProto.CheckinRequest.Checkin();
 		checkin.setBuild(build);
 		checkin.setLastCheckinMs(0);
-		checkin.addEvent(new CheckIn.CheckinRequest.Checkin.Event().setTag("event_log_start").setTimeMs(now));
+		checkin.addEvent(new CheckInProto.CheckinRequest.Checkin.Event().setTag("event_log_start").setTimeMs(now));
 		checkin.setCellOperator(info.getCellOperator());
 		checkin.setSimOperator(info.getSimOperator());
 		checkin.setRoaming(info.getRoaming());
 		checkin.setUserNumber(info.getUserNumber());
 
-		final CheckIn.CheckinRequest.DeviceConfig deviceConfig =
-				new CheckIn.CheckinRequest.DeviceConfig();
+		final CheckInProto.CheckinRequest.DeviceConfig deviceConfig = new CheckInProto.CheckinRequest.DeviceConfig();
 		deviceConfig.setTouchScreen(inRangeOr(info.getDeviceTouchScreen(), 0, 3, 0));
 		deviceConfig.setKeyboardType(inRangeOr(info.getDeviceKeyboardType(), 0, 3, 0));
 		deviceConfig.setNavigation(inRangeOr(info.getDeviceNavigation(), 0, 4, 0));
@@ -118,7 +138,7 @@ public class AndroidCheckin {
 
 		deviceConfig.setHasFiveWayNavigation(info.getDeviceHasFiveWayNavigation());
 
-		final CheckIn.CheckinRequest request = new CheckIn.CheckinRequest();
+		final CheckInProto.CheckinRequest request = new CheckInProto.CheckinRequest();
 		request.setDigest(orEmpty(info.getDigest()));
 		request.setImei(info.getImei());
 		request.setLocale(info.getLocaleString());
@@ -158,54 +178,9 @@ public class AndroidCheckin {
 			}
 		}
 
-		final CheckIn.CheckinResponse response = CheckinClient.sendRequest(request, checkInUrl);
+		final CheckInProto.CheckinResponse response = sendRequest(request, checkInUrl);
 
-		return new AndroidCheckin().new CheckinResponse(response);
+		return new CheckinResponse(response);
 	}
 
-	public class CheckinResponse {
-		private final long androidId;
-		private final long securityToken;
-		private final Map<String, String> settings;
-		private final boolean marketEnabled;
-		private final String digest;
-
-		public CheckinResponse(CheckIn.CheckinResponse response) {
-			this(response.getAndroidId(), response.getSecurityToken(), parseSettings(response.getSettingList()),
-				 response.getMarketOk(), response.getDigest());
-		}
-
-		public CheckinResponse(final long androidId, final long securityToken, final Map<String, String> settings,
-							   final boolean marketEnabled, final String digest) {
-			this.androidId = androidId;
-			this.securityToken = securityToken;
-			this.settings = settings;
-			this.marketEnabled = marketEnabled;
-			this.digest = digest;
-		}
-
-		public String getDigest() {
-			return digest;
-		}
-
-		public Map<String, String> getSettings() {
-			return settings;
-		}
-
-		public boolean isMarketEnabled() {
-			return marketEnabled;
-		}
-
-		public String getAndroidIdHex() {
-			return Long.toHexString(androidId);
-		}
-
-		public long getAndroidId() {
-			return androidId;
-		}
-
-		public long getSecurityToken() {
-			return securityToken;
-		}
-	}
 }

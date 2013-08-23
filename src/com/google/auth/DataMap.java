@@ -1,11 +1,11 @@
 package com.google.auth;
 
+import com.google.tools.Client;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.EnumMap;
-
-import com.google.tools.Client;
 
 public class DataMap extends EnumMap<DataField, String> {
 
@@ -19,10 +19,8 @@ public class DataMap extends EnumMap<DataField, String> {
 			final int split = part.indexOf("=");
 			if (split > 0) {
 				try {
-					final String key = URLDecoder.decode(
-							part.substring(0, split), CHARENC_UTF8);
-					final String value = URLDecoder.decode(
-							part.substring(split + 1), CHARENC_UTF8);
+					final String key = URLDecoder.decode(part.substring(0, split), CHARENC_UTF8);
+					final String value = URLDecoder.decode(part.substring(split + 1), CHARENC_UTF8);
 					dataMap.put(DataField.fromInternalName(key), value);
 				} catch (final Throwable t) {
 					if (Client.DEBUG) {
@@ -58,8 +56,7 @@ public class DataMap extends EnumMap<DataField, String> {
 			String value = get(field);
 			if (value != null && !value.isEmpty()) {
 				try {
-					final String key = URLEncoder.encode(
-							field.toInternalName(), CHARENC_UTF8);
+					final String key = URLEncoder.encode(field.toInternalName(), CHARENC_UTF8);
 					value = URLEncoder.encode(value, CHARENC_UTF8);
 					builder.append(key).append("=").append(value).append("&");
 				} catch (final UnsupportedEncodingException e) {

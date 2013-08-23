@@ -1,8 +1,9 @@
 package com.google.tools;
 
 import java.util.HashMap;
+import java.util.Map;
 
-public class RequestInfo extends HashMap<String, String> {
+public class RequestContext extends HashMap<String, String> {
 	public static final String KEY_AUTHORIZATION_TOKEN = "authToken";
 	public static final String KEY_ANDROID_ID_HEX = "androidIdHex";
 	public static final String KEY_ANDROID_ID_LONG = "androidIdLong";
@@ -13,6 +14,13 @@ public class RequestInfo extends HashMap<String, String> {
 	public static final String KEY_SMALEST_SCREEN_WIDTH_DP = "smalestScreenWidthDp";
 	public static final String KEY_FILTER_LEVEL = "filterLevel";
 	public static final String KEY_HTTP_USER_AGENT = "userAgent";
+
+	public RequestContext() {
+	}
+
+	public RequestContext(Map<? extends String, ? extends String> m) {
+		super(m);
+	}
 
 	public long getLong(String key) {
 		try {

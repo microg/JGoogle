@@ -9,7 +9,7 @@ import java.net.ProtocolException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-public class Client {
+public abstract class Client {
 
 	protected static final String REQUEST_CONTENT_TYPE = "application/x-www-form-urlencoded";
 	protected static final String REQUEST_CONTENT_TYPE_FIELD = "Content-Type";
@@ -18,12 +18,14 @@ public class Client {
 	protected static final String REQUEST_ACCEPT_ENCODING_FIELD = "Accept-Encoding";
 	protected static final String REQUEST_METHOD = "POST";
 	public static boolean DEBUG = false;
+	public static boolean DEBUG_ERROR = true;
+	public static boolean DEBUG_HEADER = false;
 
-	protected static boolean isError(final HttpURLConnection connection) {
+	protected boolean isError(final HttpURLConnection connection) {
 		try {
 			if (connection.getResponseCode() != 200) {
-				if (DEBUG) {
-					System.err
+				if (DEBUG_ERROR) {
+					System.out
 						  .println("Error: " + connection.getResponseCode() + " " + connection.getResponseMessage());
 				}
 				return true;
@@ -34,12 +36,12 @@ public class Client {
 		return false;
 	}
 
-	protected static void prepareConnection(final HttpURLConnection connection, final boolean gzip) {
+	protected void prepareConnection(final HttpURLConnection connection, final boolean gzip) {
 		try {
 			connection.setRequestMethod(REQUEST_METHOD);
 		} catch (final ProtocolException e) {
-			if (DEBUG) {
-				System.err.println("Could not enable POST-Request");
+			if (DEBUG_ERROR) {
+				System.out.println("Could not enable POST-Request");
 			}
 			throw new RuntimeException("Could not enable POST-Request", e);
 		}
@@ -50,11 +52,11 @@ public class Client {
 		connection.setDoOutput(true);
 	}
 
-	protected static byte[] readData(final HttpURLConnection connection, final boolean gunzip) {
+	protected byte[] readData(final HttpURLConnection connection, final boolean gunzip) {
 		return readData(connection, isError(connection), gunzip);
 	}
 
-	protected static byte[] readData(final HttpURLConnection connection, final boolean error, final boolean gunzip) {
+	protected byte[] readData(final HttpURLConnection connection, final boolean error, final boolean gunzip) {
 		try {
 			InputStream is = null;
 			if (error) {
@@ -72,22 +74,22 @@ public class Client {
 			}
 			return readStreamToEnd(is);
 		} catch (final Exception e) {
-			if (DEBUG) {
-				System.err.println("Could not read data!");
+			if (DEBUG_ERROR) {
+				System.out.println("Could not read data!");
 			}
 			throw new RuntimeException("Could not read data", e);
 		}
 	}
 
-	protected static void setUserAgent(HttpURLConnection connection, RequestInfo info) {
-		connection.setRequestProperty(REQUEST_USER_AGENT_FIELD, info.get(RequestInfo.KEY_HTTP_USER_AGENT));
+	protected void setUserAgent(HttpURLConnection connection, RequestContext info) {
+		connection.setRequestProperty(REQUEST_USER_AGENT_FIELD, info.get(RequestContext.KEY_HTTP_USER_AGENT));
 	}
 
-	protected static void setUserAgent(HttpURLConnection connection, String userAgent) {
+	protected void setUserAgent(HttpURLConnection connection, String userAgent) {
 		connection.setRequestProperty(REQUEST_USER_AGENT_FIELD, userAgent);
 	}
 
-	protected static byte[] readStreamToEnd(final InputStream is) throws IOException {
+	protected byte[] readStreamToEnd(final InputStream is) throws IOException {
 		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		if (is != null) {
 			final byte[] buff = new byte[1024];
@@ -103,15 +105,15 @@ public class Client {
 		return bos.toByteArray();
 	}
 
-	protected static void beforeRequest(final HttpURLConnection connection) {
-		if (Client.DEBUG) {
+	protected void beforeRequest(final HttpURLConnection connection) {
+		if (DEBUG_HEADER) {
 			for (String key : connection.getRequestProperties().keySet()) {
-				System.out.println("Connection Header: " + key + " = " + connection.getRequestProperty(key));
+				System.out.println("Header | " + key + ": " + connection.getRequestProperty(key));
 			}
 		}
 	}
 
-	protected static void writeData(final HttpURLConnection connection, final byte[] bytes, final boolean gzip) {
+	protected void writeData(final HttpURLConnection connection, final byte[] bytes, final boolean gzip) {
 		beforeRequest(connection);
 		try {
 			OutputStream os = connection.getOutputStream();
@@ -126,16 +128,16 @@ public class Client {
 			os.flush();
 			os.close();
 		} catch (final IOException e) {
-			if (DEBUG) {
-				System.err.println("Could not send data!");
+			if (DEBUG_ERROR) {
+				System.out.println("Could not send data!");
 				e.printStackTrace();
 			}
 			throw new RuntimeException("Could not send data", e);
 		}
 	}
 
-	protected static void writeData(final HttpURLConnection connection, final String string, final boolean gzip) {
-		if (Client.DEBUG) {
+	protected void writeData(final HttpURLConnection connection, final String string, final boolean gzip) {
+		if (DEBUG) {
 			System.out.println("Sending" + (gzip ? "(gzipped)" : "") + ": " + string);
 		}
 		writeData(connection, string.getBytes(), gzip);

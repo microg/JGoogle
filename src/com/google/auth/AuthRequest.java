@@ -2,18 +2,18 @@ package com.google.auth;
 
 import java.net.URL;
 
-public class Request extends DataMapWriter {
+public class AuthRequest extends DataMapWriter {
 
 	private static final String REQUEST_URL_DEFAULT_GOOGLE_AUTH = "https://www.google.com/accounts/ClientLogin";
 
 	private URL requestUrl;
 	private String userAgent;
 
-	public Request() {
+	public AuthRequest() {
 		super();
 	}
 
-	public Request(final URL requestUrl, final DataMap dataMap) {
+	public AuthRequest(final URL requestUrl, final DataMap dataMap) {
 		super(dataMap);
 		setRequestUrl(requestUrl);
 	}
@@ -32,8 +32,8 @@ public class Request extends DataMapWriter {
 		setRequestUrl(REQUEST_URL_DEFAULT_GOOGLE_AUTH);
 	}
 
-	public Response send() {
-		return AuthClient.sendRequest(this);
+	public AuthResponse send() {
+		return new AuthClient().sendRequest(this);
 	}
 
 	public void setUserAgent(String userAgent) {

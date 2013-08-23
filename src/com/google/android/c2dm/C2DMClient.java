@@ -1,8 +1,7 @@
-package com.google.c2dm;
+package com.google.android.c2dm;
 
-import java.util.ArrayList;
-import java.util.Map;
-
+import com.google.android.AndroidContext;
+import com.google.tools.Client;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -11,18 +10,18 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
-import com.google.tools.Client;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 
 public class C2DMClient extends Client {
 	private static final String URL = "https://android.clients.google.com/c2dm/register3";
 	private static final String USER_AGENT = "AndroidC2DM/1.1";
 
-	public static String sendRegister(long androidId, long securityToken,
-			String app, String appCert, String sender,
-			Map<String, String> extras) {
+	public static String sendRegister(long androidId, long securityToken, String app, String appCert, String sender,
+									  Map<String, String> extras) {
 		HttpPost post = new HttpPost(URL);
-		post.addHeader("Authorization", "AidLogin " + androidId + ":"
-				+ securityToken);
+		post.addHeader("Authorization", "AidLogin " + androidId + ":" + securityToken);
 		post.addHeader("app", app);
 		post.addHeader(REQUEST_USER_AGENT_FIELD, USER_AGENT);
 		for (String key : extras.keySet()) {
@@ -54,5 +53,11 @@ public class C2DMClient extends Client {
 			}
 		}
 		return null;
+	}
+
+	public static final String register(AndroidContext info, String app, String appCert, String sender,
+										Map<String, String> extras) {
+		return C2DMClient.sendRegister(info.getAndroidId(), info.getSecurityToken(), app, appCert, sender,
+									   (Map<String, String>) (extras == null ? Collections.emptyMap() : extras));
 	}
 }

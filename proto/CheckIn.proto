@@ -1,6 +1,6 @@
-option java_package = "com.google.checkin.proto";
+option java_package = "com.google.android.checkin";
 
-option java_outer_classname = "CheckIn";
+option java_outer_classname = "CheckInProto";
 
 message CheckinRequest {
     message DeviceConfig {
