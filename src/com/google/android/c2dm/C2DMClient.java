@@ -58,6 +58,6 @@ public class C2DMClient extends Client {
 	public static final String register(AndroidContext info, String app, String appCert, String sender,
 										Map<String, String> extras) {
 		return C2DMClient.sendRegister(info.getAndroidId(), info.getSecurityToken(), app, appCert, sender,
-									   (Map<String, String>) (extras == null ? Collections.emptyMap() : extras));
+									   (extras == null ? Collections.<String, String>emptyMap() : extras));
 	}
 }
