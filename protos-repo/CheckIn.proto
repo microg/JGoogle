@@ -2,7 +2,7 @@ option java_package = "com.google.android.checkin";
 
 option java_outer_classname = "CheckInProto";
 
-message CheckinRequest {
+message Request {
     message DeviceConfig {
         optional int32 touchScreen = 1; // ConfigurationInfo.reqTouchScreen
         optional int32 keyboardType = 2; // ConfigurationInfo.reqKeyboardType
@@ -84,7 +84,7 @@ message CheckinRequest {
     optional int32 userSerialNumber = 22; // UserManager.getUserSerialNumber (if != 0)
 }
 
-message CheckinResponse {
+message Response {
     message Intent {
         message Extra {
             optional string name = 6;

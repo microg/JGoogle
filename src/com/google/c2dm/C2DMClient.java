@@ -1,4 +1,4 @@
-package com.google.android.c2dm;
+package com.google.c2dm;
 
 import com.google.android.AndroidContext;
 import com.google.tools.Client;

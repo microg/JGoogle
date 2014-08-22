@@ -1,5 +1,6 @@
-package com.google.android.checkin;
+package com.google.checkin;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -12,9 +13,9 @@ public class CheckinResponse {
 	private final boolean marketEnabled;
 	private final String digest;
 
-	public CheckinResponse(CheckInProto.CheckinResponse response) {
-		this(response.getAndroidId(), response.getSecurityToken(), parseSettings(response.getSettingList()),
-			 response.getMarketOk(), response.getDigest());
+	public CheckinResponse(Response response) {
+		this(response.androidId, response.securityToken, parseSettings(response.setting),
+			 response.marketOk==null?false:response.marketOk, response.digest);
 	}
 
 	public CheckinResponse(final long androidId, final long securityToken, final Map<String, String> settings,
@@ -26,12 +27,23 @@ public class CheckinResponse {
 		this.digest = digest;
 	}
 
-	private static Map<String, String> parseSettings(List<CheckInProto.CheckinResponse.GservicesSetting> settings) {
+	private static Map<String, String> parseSettings(List<Response.GservicesSetting> settings) {
 		Map<String, String> map = new HashMap<String, String>();
-		for (CheckInProto.CheckinResponse.GservicesSetting setting : settings) {
-			map.put(setting.getName().toStringUtf8(), setting.getValue().toStringUtf8());
+		for (Response.GservicesSetting setting : settings) {
+			String name = fromUtf8Bytes(setting.name.toByteArray());
+			String value = fromUtf8Bytes(setting.value.toByteArray());
+			map.put(name, value);
 		}
+		System.out.println(map);
 		return Collections.unmodifiableMap(map);
+	}
+
+	private static String fromUtf8Bytes(byte[] bytes) {
+		try {
+			return new String(bytes, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			return null;
+		}
 	}
 
 	public String getDigest() {
