@@ -79,7 +79,7 @@ public class AuthCrypto {
 				System.arraycopy(ciphertextHeader, 0, bytes, i * 133, ciphertextHeader.length);
 				System.arraycopy(cipherbytes, 0, bytes, i * 133 + ciphertextHeader.length, cipherbytes.length);
 			}
-			return Base64.encodeBytes(bytes, Base64.URL_SAFE);
+			return Base64.encodeToString(bytes, Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP);
 		} catch (final Throwable t) {
 		}
 		return null;

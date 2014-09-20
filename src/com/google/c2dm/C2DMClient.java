@@ -1,63 +1,83 @@
 package com.google.c2dm;
 
 import com.google.android.AndroidContext;
+import com.google.android.AndroidRequestKeys;
 import com.google.tools.Client;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
+import com.google.tools.RequestContext;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Map;
 
-public class C2DMClient extends Client {
-	private static final String URL = "https://android.clients.google.com/c2dm/register3";
-	private static final String USER_AGENT = "AndroidC2DM/1.1";
+public class C2DMClient extends Client implements
+        AndroidRequestKeys.DeviceIdentifiers, AndroidRequestKeys.OperatorMetrics,
+        AndroidRequestKeys.UserIdentifiers, AndroidRequestKeys.BuildMetrics {
+    private static final String REGISTER_URL = "https://android.clients.google.com/c2dm/register3";
 
-	public static String sendRegister(long androidId, long securityToken, String app, String appCert, String sender,
-									  Map<String, String> extras) {
-		HttpPost post = new HttpPost(URL);
-		post.addHeader("Authorization", "AidLogin " + androidId + ":" + securityToken);
-		post.addHeader("app", app);
-		post.addHeader(REQUEST_USER_AGENT_FIELD, USER_AGENT);
-		for (String key : extras.keySet()) {
-			post.addHeader("X-" + key, extras.get(key));
-		}
-		ArrayList<BasicNameValuePair> list = new ArrayList<BasicNameValuePair>();
-		list.add(new BasicNameValuePair("app", app));
-		list.add(new BasicNameValuePair("sender", sender));
-		list.add(new BasicNameValuePair("cert", appCert));
-		list.add(new BasicNameValuePair("device", Long.toString(androidId)));
-		list.add(new BasicNameValuePair("device_user_id", "0"));
-		HttpClient client = new DefaultHttpClient();
-		try {
-			post.setEntity(new UrlEncodedFormEntity(list));
-			HttpResponse response = client.execute(post);
-			String result = EntityUtils.toString(response.getEntity(), "UTF-8");
-			if (DEBUG) {
-				System.out.println(result);
-			}
-			if (result.endsWith("\n")) {
-				result = result.substring(0, result.length() - 1);
-			}
-			if (result.startsWith("token")) {
-				return result.split("=")[1];
-			}
-		} catch (Exception e) {
-			if (DEBUG) {
-				e.printStackTrace();
-			}
-		}
-		return null;
-	}
+    public static final String KEY_SMALEST_SCREEN_WIDTH_DP = "smalestScreenWidthDp";
+    public static final String KEY_FILTER_LEVEL = "filterLevel";
+    protected static final String REQUEST_CONTENT_TYPE_FORM = "application/x-www-form-urlencoded; charset=UTF-8";
 
-	public static final String register(AndroidContext info, String app, String appCert, String sender,
-										Map<String, String> extras) {
-		return C2DMClient.sendRegister(info.getAndroidId(), info.getSecurityToken(), app, appCert, sender,
-									   (extras == null ? Collections.<String, String>emptyMap() : extras));
-	}
+    protected RequestContext context;
+
+    public C2DMClient(RequestContext context) {
+        this.context = context;
+    }
+
+
+    protected void prepareConnection(HttpURLConnection connection, String postType) {
+        if (postType != null) {
+            super.prepareConnection(connection, false);
+            connection.setRequestProperty(REQUEST_CONTENT_TYPE_FIELD, postType);
+        } else {
+            connection.setUseCaches(false);
+            connection.setDoInput(true);
+        }
+        connection.setRequestProperty("X-DFE-MCCMNC", context.getString(KEY_CELL_OPERATOR_NUMERIC));
+        connection.setRequestProperty("Authorization", "GoogleLogin auth=" + context.getString(KEY_AUTHORIZATION_TOKEN));
+        connection.setRequestProperty("X-DFE-Device-Id", context.getString(KEY_ANDROID_ID_HEX));
+        connection.setRequestProperty("X-DFE-Client-Id", "am-android-google");
+        connection.setRequestProperty("X-DFE-Logging-Id", context.getString(KEY_LOGGING_ID));
+        connection.setRequestProperty("X-DFE-SmallestScreenWidthDp", context.getString(KEY_SMALEST_SCREEN_WIDTH_DP));
+        connection.setRequestProperty("X-DFE-Filter-Level", context.getString(KEY_FILTER_LEVEL));
+        connection.setRequestProperty("Accept-Language", context.get(AndroidContext.KEY_LOCALE, "en_US").replace("_", "-"));
+        setUserAgent(connection, context);
+    }
+
+    public String registerC2DM(String app, String appCert, String sender, Map<String, String> extras) {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(REGISTER_URL).openConnection();
+            prepareConnection(connection, REQUEST_CONTENT_TYPE_FORM);
+            //connection.setRequestProperty("app", app);
+            if (extras != null) {
+                for (String key : extras.keySet()) {
+                    connection.setRequestProperty("X-" + key, extras.get(key));
+                }
+            }
+            String send = "app=" + app + "&sender=" + URLEncoder.encode(sender) + "&device=" + context.getLong(KEY_ANDROID_ID_LONG) + "&device_user_id=0";
+            if (DEBUG) {
+                System.out.println("C2DMregister.out: " + send);
+            }
+            writeData(connection, send.getBytes(), false);
+            byte[] bytes = readData(connection, false);
+            String result = new String(bytes);
+            if (DEBUG) {
+                System.out.println("C2DMregister.in: " + result);
+            }
+            String token = null;
+            for (String keyval : result.split("\n")) {
+                if (keyval.startsWith("token=")) {
+                    token = keyval.substring(6);
+                }
+            }
+            return token;
+        } catch (IOException e) {
+            if (DEBUG_ERROR) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
 }

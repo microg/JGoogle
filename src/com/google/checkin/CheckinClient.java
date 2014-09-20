@@ -1,57 +1,38 @@
 package com.google.checkin;
 
-import com.google.android.AndroidContext;
+import com.google.android.AndroidRequestKeys;
 import com.google.tools.Client;
+import com.google.tools.RequestContext;
 import com.squareup.wire.Wire;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 
-import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Collections;
+import java.util.List;
 
-public class CheckinClient extends Client {
+public class CheckinClient extends Client implements
+        AndroidRequestKeys.BuildMetrics, AndroidRequestKeys.DeviceMetrics,
+        AndroidRequestKeys.OperatorMetrics, AndroidRequestKeys.DeviceIdentifiers,
+        AndroidRequestKeys.UserIdentifiers, AndroidRequestKeys.UserMetrics {
+    private static final String REQUEST_CONTENT_TYPE = "application/x-protobuffer";
+    private static final String CHECKIN_URL = "https://android.clients.google.com/checkin";
+    private static final int VERSION = 3;
+    private final Wire wire = new Wire();
 
-	protected static final String REQUEST_CONTENT_TYPE = "application/x-protobuffer";
-	protected static final String REQUEST_CONTENT_TYPE_FIELD = "Content-Type";
-	private static final String checkInUrl = "https://android.clients.google.com/checkin";
-	private static final int version = 3;
-	private final Wire wire = new Wire();
+    public CheckinClient() {
+        requestContentType = REQUEST_CONTENT_TYPE;
+    }
 
-	private static int inRangeOr(int val, int min, int max, int def) {
-		return (val >= min && val <= max) ? val : def;
-	}
-
-	private static String orString(String s, String e) {
-		return isKnown(s) ? s : e;
-	}
-
-	private static String orEmpty(String s) {
-		return orString(s, "");
-	}
-
-	private static boolean isKnown(String s) {
-		return (notEmpty(s) && !s.equalsIgnoreCase("unknown"));
-	}
-
-	private static boolean notEmpty(String s) {
-		return (s != null && !s.isEmpty());
-	}
-
-	public Response sendRequest(final Request request, final String url) {
+    public Response sendRequest(final Request request, final String url) {
 
 		byte[] bytes = null;
 		try {
-			final HttpPost post = new HttpPost(url);
-			post.setHeader(REQUEST_CONTENT_TYPE_FIELD, REQUEST_CONTENT_TYPE);
-			post.setEntity(new ByteArrayEntity(request.toByteArray()));
-			post.setHeader("User-Agent", "Android-Checkin/2.0 (mako JDQ39); gzip");
-			final DefaultHttpClient client = new DefaultHttpClient();
-			final HttpResponse response = client.execute(post);
-			final InputStream is = response.getEntity().getContent();
-			bytes = readStreamToEnd(is);
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            prepareConnection(connection, false);
+            setUserAgent(connection, "Android-Checkin/2.0");
+            writeData(connection, request.toByteArray(), false);
+            bytes = readData(connection, false);
 			return wire.parseFrom(bytes, Response.class);
 		} catch (final Exception e) {
 			if (DEBUG_ERROR) {
@@ -65,104 +46,105 @@ public class CheckinClient extends Client {
 
 	}
 
-	public CheckinResponse checkin(final AndroidContext info, final String authToken) {
-		final long now = new Date().getTime();
+    public CheckinResponse checkin(RequestContext context) {
+        return checkin(context, context.getString(KEY_AUTHORIZATION_TOKEN));
+    }
 
-		final Request.Checkin.Build.Builder build = new Request.Checkin.Build.Builder();
-		if (notEmpty(info.getBuildFingerprint())) {
-			build.fingerprint(info.getBuildFingerprint());
-		}
-		if (notEmpty(info.getBuildProduct())) {
-			build.product(info.getBuildProduct());
-		}
-		if (notEmpty(info.getBuildBrand())) {
-			build.brand(info.getBuildBrand());
-		}
-		if (notEmpty(info.getBuildRadio())) {
-			build.radio(info.getBuildRadio());
-		}
-		if (notEmpty(info.getBuildBootloader())) {
-			build.bootloader(info.getBuildBootloader());
-		}
-		if (notEmpty(info.getBuildHardware())) {
-			build.hardware(info.getBuildHardware());
-		}
-		if (notEmpty(info.getBuildManufacturer())) {
-			build.manufacturer(info.getBuildManufacturer());
-		}
-		if (notEmpty(info.getBuildModel())) {
-			build.model(info.getBuildModel());
-		}
-		if (notEmpty(info.getBuildDevice())) {
-			build.device(info.getBuildDevice());
-		}
-		build.time(info.getBuildTime()).packageVersionCode(info.getBuildSdkVersion()).sdkVersion(info.getBuildSdkVersion()).clientId(info.getBuildClientId()).otaInstalled(info.getBuildOtaInstalled());
+    public CheckinResponse checkin(RequestContext context, String authToken) {
+        Object TODO = null;
+        long now = System.currentTimeMillis();
+        Request request = new Request.Builder()
+                .accountCookie(buildAccountCookie(context.getString(KEY_EMAIL), authToken))
+                .androidId(context.getLong(KEY_ANDROID_ID_LONG))
+                .checkin(new Request.Checkin.Builder()
+                        .build(new Request.Checkin.Build.Builder()
+                                .bootloader(context.getString(KEY_BUILD_BOOTLOADER))
+                                .brand(context.getString(KEY_BUILD_BRAND))
+                                .clientId(context.getString(KEY_CLIENT_ID))
+                                .device(context.getString(KEY_BUILD_DEVICE))
+                                .fingerprint(context.getString(KEY_BUILD_FINGERPRINT))
+                                .hardware(context.getString(KEY_BUILD_HARDWARE))
+                                .manufacturer(context.getString(KEY_BUILD_MANUFACTURER))
+                                .model(context.getString(KEY_BUILD_MODEL))
+                                .otaInstalled(context.getBoolean(KEY_OTA_INSTALLED, false))
+                                .packageVersionCode(context.getInt(KEY_SDK_VERSION))
+                                .product(context.getString(KEY_BUILD_PRODUCT))
+                                .radio(context.getString(KEY_BUILD_RADIO))
+                                .sdkVersion(context.getInt(KEY_SDK_VERSION))
+                                .time(context.getLong(KEY_BUILD_TIME, now) / 1000L)
+                                .build())
+                        .cellOperator(context.getString(KEY_CELL_OPERATOR_NUMERIC))
+                        .event(Arrays.asList(new Request.Checkin.Event("event_log_start", null, now)))
+                        .lastCheckinMs(0L)
+                                //.requestedGroup(TODO)
+                        .roaming(context.getString(KEY_ROAMING))
+                        .simOperator(context.getString(KEY_SIM_OPERATOR_NUMERIC))
+                                //.stat(TODO)
+                        .userNumber(0)
+                        .build())
+                        //.desiredBuild(TODO)
+                .deviceConfiguration(new Request.DeviceConfig.Builder()
+                        .availableFeature(context.get(KEY_DEVICE_FEATURES, Collections.<String>emptyList()))
+                        .densityDpi(context.getInt(KEY_DEVICE_SCREEN_DPI))
+                                //.deviceClass(context.getInt(KEY_DEVICE_CLASS))
+                        .glEsVersion(context.getInt(KEY_DEVICE_GLES_VERSION))
+                        .glExtension(context.get(KEY_DEVICE_GLES_EXTENSIONS, Collections.<String>emptyList()))
+                        .hasFiveWayNavigation(context.getBoolean(KEY_DEVICE_FIVE_WAY_NAVIGATION, false))
+                        .hasHardKeyboard(context.getBoolean(KEY_DEVICE_HARD_KEYBOARD, false))
+                        .heightPixels(context.getInt(KEY_DEVICE_SCREEN_HEIGHT_PX))
+                        .keyboardType(context.getInt(KEY_DEVICE_KEYBOARD_TYPE, 0))
+                        .locale(context.get(KEY_DEVICE_LOCALES, Collections.<String>emptyList()))
+                                //.maxApkDownloadSizeMb(TODO)
+                        .nativePlatform(context.get(KEY_DEVICE_NATIVE_PLATFORM, Collections.<String>emptyList()))
+                        .navigation(context.getInt(KEY_DEVICE_NAVIGATION, 0))
+                        .screenLayout(context.getInt(KEY_DEVICE_SCREEN_LAYOUT, 0))
+                        .sharedLibrary(context.get(KEY_DEVICE_SHARED_LIBRARY, Collections.<String>emptyList()))
+                        .touchScreen(context.getInt(KEY_DEVICE_TOUCH_SCREEN, 0))
+                        .widthPixels(context.getInt(KEY_DEVICE_SCREEN_WIDTH_PX))
+                        .build())
+                .digest(context.getString(KEY_CHECKIN_DIGEST))
+                .esn(context.getString(KEY_ESN))
+                .fragment(0)
+                        //.imei(context.getString(KEY_IMEI)) // Note: this is never set, use meid instead
+                .locale(context.getString(KEY_LOCALE))
+                .loggingId(context.getLong(KEY_LOGGING_ID))
+                .macAddress(Arrays.asList(context.getString(KEY_WIFI_MAC_ADDRESS)))
+                .macAddressType(Arrays.asList("wifi"))
+                        //.marketCheckin(TODO)
+                .meid(context.get(KEY_IMEI, context.getString(KEY_MEID)))
+                .otaCert(Arrays.asList(context.getString(KEY_OTA_CERT)))
+                .securityToken(context.getLong(KEY_CHECKIN_SECURITY_TOKEN))
+                .serial(context.getString(KEY_BUILD_SERIAL))
+                .timeZone(context.getString(KEY_TIME_ZONE))
+                        //.userName(TODO)
+                        //.userSerialNumber(TODO)
+                .version(VERSION)
+                .build();
 
-		final Request.Checkin checkin = new Request.Checkin.Builder().build(build.build()).lastCheckinMs(0L).event(Arrays.asList(new Request.Checkin.Event.Builder().tag("event_log_start").timeMs(now).build())).cellOperator(info.getCellOperator()).simOperator(info.getSimOperator()).roaming(info.getRoaming()).userNumber(info.getUserNumber()).build();
+        if (Client.DEBUG) {
+            System.out.println(request);
+        }
 
-		final Request.DeviceConfig.Builder deviceConfig = new Request.DeviceConfig.Builder();
-		deviceConfig.touchScreen(inRangeOr(info.getDeviceTouchScreen(), 0, 3, 0));
-		deviceConfig.keyboardType(inRangeOr(info.getDeviceKeyboardType(), 0, 3, 0));
-		deviceConfig.navigation(inRangeOr(info.getDeviceNavigation(), 0, 4, 0));
-		deviceConfig.widthPixels(info.getDeviceWidthPixels());
-		deviceConfig.heightPixels(info.getDeviceHeightPixels());
-		deviceConfig.screenLayout(inRangeOr(info.getDeviceScreenLayout(), 0, 4, 0));
-		deviceConfig.hasHardKeyboard(info.getDeviceHasHardKeyboard());
-		deviceConfig.densityDpi(info.getDeviceDensityDpi());
-		deviceConfig.glEsVersion(info.getDeviceGlEsVersion());
-		deviceConfig.glExtension(info.getDeviceGlExtensions());
+        final Response response = sendRequest(request, CHECKIN_URL);
+        if (Client.DEBUG) {
+            System.out.println(response);
+        }
 
-		if (isKnown(info.getBuildCpuAbi2())) {
-			deviceConfig.nativePlatform(Arrays.asList(info.getBuildCpuAbi(), info.getBuildCpuAbi2()));
-		} else {
-			deviceConfig.nativePlatform(Arrays.asList(info.getBuildCpuAbi()));
-		}
-		deviceConfig.sharedLibrary(info.getDeviceSharedLibraries());
-		deviceConfig.availableFeature(info.getDeviceFeatures());
-		deviceConfig.locale(info.getDeviceLocales());
-		deviceConfig.hasFiveWayNavigation(info.getDeviceHasFiveWayNavigation());
+        if (response == null) {
+            return null;
+        } else {
+            return new CheckinResponse(response);
+        }
+    }
 
-		final Request.Builder request = new Request.Builder().digest(orEmpty(info.getDigest())).imei(info.getImei()).locale(info.getLocaleString()).timeZone(info.getTimeZoneString()).checkin(checkin).deviceConfiguration(deviceConfig.build()).otaCert(Arrays.asList(orString(info.getOtaCert(), "--no-output--"))).loggingId(info.getLoggingId()).fragment(0);
-
-		if (info.getAndroidId() == 0 || info.getSecurityToken() != 0) {
-			request.version(version);
-		}
-		if (isKnown(info.getMeid())) {
-			request.meid(info.getMeid());
-		}
-		if (isKnown(info.getEsn())) {
-			request.esn(info.getEsn());
-		}
-		if (isKnown(info.getBuildSerial())) {
-			request.serial(info.getBuildSerial());
-		}
-		if (isKnown(info.getMacAddress()) && isKnown(info.getMacAddressType())) {
-			request.macAddressType(Arrays.asList(info.getMacAddressType()));
-			request.macAddress(Arrays.asList(info.getMacAddress()));
-		}
-
-		if (info.getSecurityToken() != 0 && info.getSecurityToken() != Long.MIN_VALUE) {
-			request.securityToken(info.getSecurityToken());
-		}
-		if (info.getAndroidId() != 0 && info.getAndroidId() != Long.MIN_VALUE) {
-			request.androidId(info.getAndroidId());
-		}
-		if (info.getEmail() != null && !info.getEmail().isEmpty()) {
-			if (authToken != null && !authToken.isEmpty()) {
-				request.accountCookie(Arrays.asList(authToken, "[" + info.getEmail() + "]"));
-			} else {
-				request.accountCookie(Arrays.asList("[" + info.getEmail() + "]"));
-			}
-		}
-
-		final Response response = sendRequest(request.build(), checkInUrl);
-		System.out.println(response);
-
-		if (response == null) {
-			return null;
-		} else {
-			return new CheckinResponse(response);
-		}
-	}
-
+    private List<String> buildAccountCookie(String email, String authToken) {
+        if (email != null && !email.isEmpty()) {
+            if (authToken != null && !authToken.isEmpty()) {
+                return Arrays.asList("[" + email + "]", authToken);
+            } else {
+                return Arrays.asList("[" + email + "]");
+            }
+        }
+        return Arrays.asList("");
+    }
 }

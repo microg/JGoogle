@@ -10,18 +10,22 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public abstract class Client {
+    public static final String KEY_HTTP_USER_AGENT = "userAgent";
 
-	protected static final String REQUEST_CONTENT_TYPE = "application/x-www-form-urlencoded";
 	protected static final String REQUEST_CONTENT_TYPE_FIELD = "Content-Type";
+    protected static final String REQUEST_CONTENT_ENCODING_FIELD = "Content-Encoding";
 	protected static final String REQUEST_USER_AGENT_FIELD = "User-Agent";
 	protected static final String REQUEST_ACCEPT_FIELD = "Accept";
 	protected static final String REQUEST_ACCEPT_ENCODING_FIELD = "Accept-Encoding";
-	protected static final String REQUEST_METHOD = "POST";
+
 	public static boolean DEBUG = false;
 	public static boolean DEBUG_ERROR = true;
 	public static boolean DEBUG_HEADER = false;
 
-	protected boolean isError(final HttpURLConnection connection) {
+    protected String requestContentType = "application/x-www-form-urlencoded; charset=UTF-8";
+    protected String requestMethod = "POST";
+
+    protected boolean isError(final HttpURLConnection connection) {
 		try {
 			if (connection.getResponseCode() != 200) {
 				if (DEBUG_ERROR) {
@@ -38,15 +42,18 @@ public abstract class Client {
 
 	protected void prepareConnection(final HttpURLConnection connection, final boolean gzip) {
 		try {
-			connection.setRequestMethod(REQUEST_METHOD);
+			connection.setRequestMethod(requestMethod);
 		} catch (final ProtocolException e) {
 			if (DEBUG_ERROR) {
 				System.out.println("Could not enable POST-Request");
 			}
 			throw new RuntimeException("Could not enable POST-Request", e);
 		}
-		connection.setRequestProperty(REQUEST_CONTENT_TYPE_FIELD, REQUEST_CONTENT_TYPE);
-		connection.setRequestProperty(REQUEST_ACCEPT_ENCODING_FIELD, gzip ? "gzip" : "identity");
+		connection.setRequestProperty(REQUEST_CONTENT_TYPE_FIELD, requestContentType);
+		//connection.setRequestProperty(REQUEST_ACCEPT_ENCODING_FIELD, gzip ? "gzip" : "identity");
+        if (gzip) {
+            connection.setRequestProperty(REQUEST_CONTENT_ENCODING_FIELD, "gzip");
+        }
 		connection.setUseCaches(false);
 		connection.setDoInput(true);
 		connection.setDoOutput(true);
@@ -82,7 +89,7 @@ public abstract class Client {
 	}
 
 	protected void setUserAgent(HttpURLConnection connection, RequestContext info) {
-		connection.setRequestProperty(REQUEST_USER_AGENT_FIELD, info.get(RequestContext.KEY_HTTP_USER_AGENT));
+		connection.setRequestProperty(REQUEST_USER_AGENT_FIELD, info.getString(KEY_HTTP_USER_AGENT));
 	}
 
 	protected void setUserAgent(HttpURLConnection connection, String userAgent) {

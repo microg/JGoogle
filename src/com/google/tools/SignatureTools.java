@@ -16,7 +16,7 @@ public class SignatureTools {
 			signatureBytes = md.digest(signatureBytes);
 			if (signatureBytes != null) {
 				try {
-					return noPadding(Base64.encodeBytes(signatureBytes, Base64.URL_SAFE));
+					return noPadding(Base64.encodeToString(signatureBytes, Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP));
 				} catch (Exception e) {
 				}
 			}
@@ -47,7 +47,7 @@ public class SignatureTools {
 			signatureBytes = md.digest(signatureBytes);
 			if (signatureBytes != null) {
 				try {
-					return noPadding(Base64.encodeBytes(signatureBytes, Base64.URL_SAFE));
+					return noPadding(Base64.encodeToString(signatureBytes, Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP));
 				} catch (Exception e) {
 				}
 			}

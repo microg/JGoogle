@@ -3,7 +3,7 @@ package com.google.android;
 import com.google.auth.*;
 import com.google.tools.Client;
 
-public class AndroidAuth extends AuthClient {
+public class AndroidAuth extends AuthClient implements AndroidRequestKeys.UserMetrics {
 
 	private final static String ACCOUNT_TYPE_HOSTED_OR_GOOGLE = "HOSTED_OR_GOOGLE";
 	private static final String REQUEST_URL_ANDROID_CLIENT_AUTH = "https://android.clients.google.com/auth";
@@ -17,14 +17,18 @@ public class AndroidAuth extends AuthClient {
 		request.putData(DataField.SOURCE, SOURCE_ANDROID);
 		request.putData(DataField.SERVICE, SERVICE_DEFAULT_AC2DM);
 		request.putData(DataField.EMAIL, info.getEmail());
-		if (info.getAndroidId() != 0 && info.getAndroidId() != Long.MIN_VALUE) {
-			request.putData(DataField.ANDROID_ID, info.getAndroidIdHex());
+        if (info.getAndroidId() != null && info.getAndroidId() != Long.MIN_VALUE) {
+            request.putData(DataField.ANDROID_ID, info.getAndroidIdHex());
 		}
-		request.putData(DataField.DEVICE_COUNTRY, info.getCountry());
-		request.putData(DataField.OPERATOR_COUNTRY, info.getCountry());
-		request.putData(DataField.LANGUAGE, info.getLanguage());
-		request.putData(DataField.SDK_VERSION, info.getSdkVersionString());
-		request.setUserAgent("GoogleLoginService/1.3 (" + info.getBuildDevice() + " " + info.getBuildId() + ")");
+        String[] locale = info.get(KEY_LOCALE, "en_US").split("_");
+        if (locale.length != 2) {
+            locale = new String[]{"en", "US"};
+        }
+        request.putData(DataField.DEVICE_COUNTRY, locale[1]);
+        request.putData(DataField.OPERATOR_COUNTRY, locale[1]);
+        request.putData(DataField.LANGUAGE, locale[0]);
+        request.putData(DataField.SDK_VERSION, Integer.toString(info.getSdkVersion()));
+        request.setUserAgent("GoogleLoginService/1.3 (" + info.getBuildDevice() + " " + info.getBuildId() + ")");
 		return request;
 	}
 
